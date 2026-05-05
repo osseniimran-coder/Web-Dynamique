@@ -1,10 +1,3 @@
--- ============================================
--- BASE DE DONNÉES - WEB-DYNAMIQUE
--- Système de gestion de ventes
--- ============================================
--- Créé le : 2026-05-05
--- Version : 2.0 (Unifié + Sécurisé)
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -14,30 +7,21 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
--- ============================================
--- CRÉATION DE LA BASE DE DONNÉES
--- ============================================
 DROP DATABASE IF EXISTS `shop_db`;
 CREATE DATABASE IF NOT EXISTS `shop_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `shop_db`;
 
--- ============================================
--- TABLE: USERS (Utilisateurs/Administrateurs)
--- ============================================
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nom` varchar(50) NOT NULL,
   `prenom` varchar(50) NOT NULL,
   `login` varchar(50) NOT NULL UNIQUE,
-  `password` varchar(255) NOT NULL COMMENT 'Hash MD5 ou bcrypt',
+  `password` varchar(255) NOT NULL,
   `contact` varchar(20) DEFAULT NULL,
   `date_creation` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- ============================================
--- TABLE: CLIENTS
--- ============================================
 CREATE TABLE `clients` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nom_client` varchar(100) NOT NULL,
@@ -52,13 +36,10 @@ CREATE TABLE `clients` (
   INDEX `idx_nom` (`nom_client`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- ============================================
--- TABLE: PRODUITS (Articles)
--- ============================================
 CREATE TABLE `produits` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nom_produit` varchar(100) NOT NULL,
-  `design` varchar(50) DEFAULT NULL COMMENT 'Description du design',
+  `design` varchar(50) DEFAULT NULL,
   `prix_produit` decimal(10, 2) NOT NULL,
   `categorie` varchar(50) DEFAULT NULL,
   `quantite_stock` int(11) DEFAULT 0,
@@ -68,30 +49,24 @@ CREATE TABLE `produits` (
   INDEX `idx_nom` (`nom_produit`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- ============================================
--- TABLE: COMMANDES
--- ============================================
 CREATE TABLE `commandes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `id_client` int(11) NOT NULL,
   `date_cmd` date NOT NULL,
   `montant` decimal(12, 2) NOT NULL,
-  `statut` varchar(30) DEFAULT 'En attente' COMMENT 'En attente, Confirmée, Livrée, Annulée',
+  `statut` varchar(30) DEFAULT 'En attente',
   `date_creation` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_client` (`id_client`),
   CONSTRAINT `fk_commandes_client` FOREIGN KEY (`id_client`) REFERENCES `clients` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- ============================================
--- TABLE: DETAILS_COMMANDE (Contenir)
--- ============================================
 CREATE TABLE `details_commande` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `id_commande` int(11) NOT NULL,
   `id_produit` int(11) NOT NULL,
   `qte` int(11) NOT NULL,
-  `prix` decimal(10, 2) NOT NULL COMMENT 'Prix au moment de la commande',
+  `prix` decimal(10, 2) NOT NULL,
   `montant_ligne` decimal(12, 2) GENERATED ALWAYS AS (qte * prix) STORED,
   PRIMARY KEY (`id`),
   KEY `fk_commande` (`id_commande`),
@@ -100,22 +75,15 @@ CREATE TABLE `details_commande` (
   CONSTRAINT `fk_details_produit` FOREIGN KEY (`id_produit`) REFERENCES `produits` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- ============================================
--- DONNÉES D'EXEMPLE
--- ============================================
-
--- Utilisateurs exemple
 INSERT INTO `users` (`nom`, `prenom`, `login`, `password`, `contact`) VALUES
 ('Admin', 'Système', 'admin', 'admin123', '0000000000'),
 ('Imran', 'Osseni', 'imran', 'password123', '0123456789');
 
--- Clients exemple
 INSERT INTO `clients` (`nom_client`, `prenom_client`, `age`, `adresse`, `ville`, `tel`, `mail`) VALUES
 ('Diallo', 'Mohamed', 28, '123 Rue du Commerce', 'Dakar', '+221771234567', 'mohamed@email.com'),
 ('Sow', 'Aïssatou', 35, '456 Avenue Nationale', 'Thiès', '+221772345678', 'aissatou@email.com'),
 ('Ba', 'Mamadou', 42, '789 Boulevard Central', 'Kaolack', '+221773456789', 'mamadou@email.com');
 
--- Produits exemple
 INSERT INTO `produits` (`nom_produit`, `design`, `prix_produit`, `categorie`, `quantite_stock`) VALUES
 ('Téléphone Samsung A12', 'Smartphone noir', 150000.00, 'Électronique', 50),
 ('Casque Audio JBL', 'Casque sans fil', 45000.00, 'Accessoires', 30),
@@ -123,13 +91,11 @@ INSERT INTO `produits` (`nom_produit`, `design`, `prix_produit`, `categorie`, `q
 ('Écran Moniteur 24"', 'Écran LED Full HD', 120000.00, 'Informatique', 15),
 ('Clavier Mécanique RGB', 'Clavier gaming', 35000.00, 'Informatique', 25);
 
--- Commandes exemple
 INSERT INTO `commandes` (`id_client`, `date_cmd`, `montant`, `statut`) VALUES
 (1, '2026-04-28', 195000.00, 'Confirmée'),
 (2, '2026-04-29', 45000.00, 'Livrée'),
 (1, '2026-05-01', 160000.00, 'En attente');
 
--- Détails commandes exemple
 INSERT INTO `details_commande` (`id_commande`, `id_produit`, `qte`, `prix`) VALUES
 (1, 1, 1, 150000.00),
 (1, 3, 1, 25000.00),
